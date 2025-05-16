@@ -1,6 +1,6 @@
 from data import orderbook
 
-def calculate_market_impact(orderbook: orderbook.OrderBook, order_type: str, order_size_usd: float, volatility: float = None) -> float:
+def calculate_market_impact(orderbook: orderbook.OrderBook, order_type, order_size_usd, volatility = None):
     
     asks = orderbook.get_asks()
     bids = orderbook.get_bids()
