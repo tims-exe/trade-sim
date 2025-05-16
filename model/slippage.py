@@ -9,20 +9,19 @@ import logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-def calculate_expected_slippage(orderbook, order_type, order_size_usd):
+def calculate_expected_slippage(orderbook, order_size_usd):
     """
     Calculate expected slippage based on current orderbook.
     
     Parameters:
     - orderbook: Current orderbook with asks and bids
-    - order_type: 'buy'
     - order_size_usd: Size of the order in USD
     
     Returns:
     - expected_slippage_usd: Expected slippage in USD
     """
 
-    price_levels = orderbook['asks'] 
+    price_levels = orderbook.get_asks() 
     best_price = float(price_levels[0][0])
     
     remaining_order = order_size_usd

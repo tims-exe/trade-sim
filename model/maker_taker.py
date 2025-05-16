@@ -1,12 +1,11 @@
 import math
 from typing import Tuple
-from data.orderbook import OrderBook
 
 def sigmoid(x):
     return 1 / (1 + math.exp(-x))
 
 
-def estimate_maker_taker_proportion(orderbook: OrderBook, order_type, order_side, order_size_usd, limit_price = None):
+def estimate_maker_taker_proportion(orderbook, order_type, order_side, order_size_usd, limit_price = None):
     asks = orderbook.get_asks()
     bids = orderbook.get_bids()
     if not asks or not bids:
