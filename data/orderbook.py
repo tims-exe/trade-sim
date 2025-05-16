@@ -13,6 +13,25 @@ class OrderBook:
         self.bids.sort(key=lambda x: x[0], reverse=True)
         self.asks.sort(key=lambda x: x[0])
 
+    def get_asks(self):
+        if not self.asks:
+            return None
+        return self.asks
+    
+    def get_bids(self):
+        if not self.bids:
+            return None
+        return self.bids
+    
+    def get_mid_price(self):
+        """Calculate the mid price from the best bid and ask."""
+        if not self.bids or not self.asks:
+            return None
+        
+        best_bid = self.bids[0][0]
+        best_ask = self.asks[0][0]
+        return (best_bid + best_ask) / 2
+
 
 
 # class OrderBook:
