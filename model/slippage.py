@@ -1,34 +1,36 @@
-"""
-Expected Slippage (buy) = Weighted Average Execution Price - Best Ask Price
-
-Iterate through the orderbook and check level value
-"""
-
 import logging
 
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
-
-def calculate_expected_slippage(orderbook, order_size_usd):
+def calculate_expected_slippage(orderbook, order_size_usd, order_side="buy"):
     """
     Calculate expected slippage based on current orderbook.
     
     Parameters:
     - orderbook: Current orderbook with asks and bids
     - order_size_usd: Size of the order in USD
+    - order_side: 'buy' or 'sell'
     
     Returns:
     - expected_slippage_usd: Expected slippage in USD
     """
-
-    price_levels = orderbook.get_asks() 
-    best_price = float(price_levels[0][0])
+    # Select the appropriate price levels based on order side
+    if order_side.lower() == "buy":
+        price_levels = orderbook.get_asks()
+        if not price_levels:
+            return None
+        best_price = float(price_levels[0][0])
+    else:  # sell
+        price_levels = orderbook.get_bids()
+        if not price_levels:
+            return None
+        best_price = float(price_levels[0][0])
     
     remaining_order = order_size_usd
     weighted_sum = 0
     total_quantity = 0
     
     for price, qnty in price_levels:
+        price = float(price)
+        qnty = float(qnty)
         
         level_value = price * qnty
 
@@ -46,13 +48,26 @@ def calculate_expected_slippage(orderbook, order_size_usd):
             remaining_order -= level_value
     
     if remaining_order > 0:
-        logger.warning("Not enough liquidity in the orderbook")
+        logging.warning(f"Not enough liquidity in the orderbook for {order_size_usd} USD order")
+        # For small amounts, let's be optimistic and return a small slippage rather than None
+        if total_quantity > 0:
+            weighted_avg_price = weighted_sum / total_quantity
+            slippage = abs(weighted_avg_price - best_price) / best_price
+            return slippage * order_size_usd
         return None
 
-    weighted_avg_price = weighted_sum / total_quantity
-
-    slippage = (weighted_avg_price - best_price) / best_price
+    weighted_avg_price = weighted_sum / total_quantity if total_quantity > 0 else best_price
+    
+    # For buy orders: slippage is how much higher the avg price is than best price
+    # For sell orders: slippage is how much lower the avg price is than best price
+    if order_side.lower() == "buy":
+        slippage = (weighted_avg_price - best_price) / best_price
+    else:
+        slippage = (best_price - weighted_avg_price) / best_price
+        
     slippage_usd = slippage * order_size_usd
 
-    return slippage_usd
+    #print(f"\n\n===========================================REacehd slip {slippage}\n\n")
 
+    
+    return max(0.0, slippage_usd)  # Ensure we don't return negative slippage
